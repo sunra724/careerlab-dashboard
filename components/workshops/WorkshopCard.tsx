@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, FileText, PencilLine } from "lucide-react";
+import {
+  ExternalLink,
+  FileText,
+  PencilLine,
+  QrCode,
+  Users,
+} from "lucide-react";
 
+import AttendancePanel from "@/components/attendance/AttendancePanel";
+import QrModal from "@/components/attendance/QrModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { WorkshopRecord } from "@/lib/types";
@@ -21,6 +29,8 @@ export default function WorkshopCard({
   onUpdate: (id: number, payload: Partial<WorkshopRecord>) => Promise<void>;
 }) {
   const [isEditingLinks, setIsEditingLinks] = useState(false);
+  const [showAttendance, setShowAttendance] = useState(false);
+  const [showQr, setShowQr] = useState(false);
   const [planUrl, setPlanUrl] = useState(workshop.plan_doc_url ?? "");
   const [resultUrl, setResultUrl] = useState(workshop.result_doc_url ?? "");
   const statusMeta = STATUS_META[workshop.status];
@@ -48,42 +58,28 @@ export default function WorkshopCard({
               </p>
             </div>
           </div>
+
           <div className="mt-4 space-y-2 pl-12 text-sm text-slate-500">
             <p>퍼실리테이터: {workshop.facilitator ?? "미정"}</p>
-            <p>
-              출석 현황: {workshop.attended_count}/{workshop.total_invited}명
-            </p>
+            <p>출석 현황: {workshop.attended_count}/{workshop.total_invited}명</p>
             <div className="flex flex-wrap items-center gap-2">
               {workshop.plan_doc_url ? (
-                <a
-                  href={workshop.plan_doc_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-lab-blue hover:underline"
-                >
+                <a className="inline-flex items-center gap-1 text-lab-blue hover:underline" href={workshop.plan_doc_url} rel="noreferrer" target="_blank">
                   <FileText className="h-4 w-4" />
                   운영계획서
                 </a>
               ) : (
-                <span className="text-sm text-slate-300">운영계획서 미등록</span>
+                <span className="text-slate-300">운영계획서 미등록</span>
               )}
               {workshop.result_doc_url ? (
-                <a
-                  href={workshop.result_doc_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-lab-green hover:underline"
-                >
+                <a className="inline-flex items-center gap-1 text-lab-green hover:underline" href={workshop.result_doc_url} rel="noreferrer" target="_blank">
                   <ExternalLink className="h-4 w-4" />
                   결과보고서
                 </a>
               ) : (
-                <span className="text-sm text-slate-300">결과보고서 미등록</span>
+                <span className="text-slate-300">결과보고서 미등록</span>
               )}
-              <button
-                onClick={() => setIsEditingLinks((prev) => !prev)}
-                className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600"
-              >
+              <button className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600" onClick={() => setIsEditingLinks((prev) => !prev)}>
                 <PencilLine className="h-4 w-4" />
                 링크 관리
               </button>
@@ -95,12 +91,7 @@ export default function WorkshopCard({
           <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
           <div className="flex flex-wrap gap-2">
             {(["planned", "ongoing", "done"] as const).map((status) => (
-              <Button
-                key={status}
-                variant={workshop.status === status ? "primary" : "outline"}
-                size="sm"
-                onClick={() => onUpdate(workshop.id, { status })}
-              >
+              <Button key={status} onClick={() => onUpdate(workshop.id, { status })} size="sm" variant={workshop.status === status ? "primary" : "outline"}>
                 {STATUS_META[status].label}
               </Button>
             ))}
@@ -108,41 +99,41 @@ export default function WorkshopCard({
         </div>
       </div>
 
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4 pl-12">
+        <Button onClick={() => setShowQr(true)} size="sm" variant="ghost">
+          <QrCode className="mr-1 h-4 w-4" />
+          QR 출석
+        </Button>
+        <Button onClick={() => setShowAttendance((prev) => !prev)} size="sm" variant="ghost">
+          <Users className="mr-1 h-4 w-4" />
+          출석 현황
+        </Button>
+      </div>
+
+      {showAttendance ? (
+        <div className="mt-4 border-t border-slate-100 pt-4 pl-12">
+          <AttendancePanel sessionId={workshop.id} sessionType="workshop" />
+        </div>
+      ) : null}
+
       {isEditingLinks ? (
         <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 md:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-              운영계획서
-            </p>
-            <input
-              type="text"
-              value={planUrl}
-              onChange={(event) => setPlanUrl(event.target.value)}
-              placeholder="링크 입력"
-              className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10"
-            />
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-              결과보고서
-            </p>
-            <input
-              type="text"
-              value={resultUrl}
-              onChange={(event) => setResultUrl(event.target.value)}
-              placeholder="링크 입력"
-              className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10"
-            />
-          </div>
+          <input className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10" onChange={(event) => setPlanUrl(event.target.value)} placeholder="운영계획서 링크" type="text" value={planUrl} />
+          <input className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10" onChange={(event) => setResultUrl(event.target.value)} placeholder="결과보고서 링크" type="text" value={resultUrl} />
           <div className="md:col-span-2 flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsEditingLinks(false)}>
-              취소
-            </Button>
-            <Button size="sm" onClick={saveLinks}>
-              링크 저장
-            </Button>
+            <Button onClick={() => setIsEditingLinks(false)} size="sm" variant="outline">취소</Button>
+            <Button onClick={saveLinks} size="sm">링크 저장</Button>
           </div>
         </div>
+      ) : null}
+
+      {showQr ? (
+        <QrModal
+          onClose={() => setShowQr(false)}
+          sessionId={workshop.id}
+          sessionTitle={workshop.title}
+          sessionType="workshop"
+        />
       ) : null}
     </article>
   );

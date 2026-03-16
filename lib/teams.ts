@@ -2,6 +2,7 @@ export interface TeamMeta {
   id: number;
   name: string;
   hex: string;
+  dotClass: string;
   textClass: string;
   softClass: string;
   badgeClass: string;
@@ -13,6 +14,7 @@ export const TEAM_META: TeamMeta[] = [
     id: 1,
     name: "팀 A",
     hex: "#46549C",
+    dotClass: "bg-navy",
     textClass: "text-navy",
     softClass: "bg-navy/10",
     badgeClass: "bg-navy/10 text-navy",
@@ -22,6 +24,7 @@ export const TEAM_META: TeamMeta[] = [
     id: 2,
     name: "팀 B",
     hex: "#248DAC",
+    dotClass: "bg-lab-blue",
     textClass: "text-lab-blue",
     softClass: "bg-lab-blue/10",
     badgeClass: "bg-lab-blue/10 text-lab-blue",
@@ -31,6 +34,7 @@ export const TEAM_META: TeamMeta[] = [
     id: 3,
     name: "팀 C",
     hex: "#228D7B",
+    dotClass: "bg-lab-green",
     textClass: "text-lab-green",
     softClass: "bg-lab-green/10",
     badgeClass: "bg-lab-green/10 text-lab-green",
@@ -40,6 +44,7 @@ export const TEAM_META: TeamMeta[] = [
     id: 4,
     name: "팀 D",
     hex: "#7C5CBF",
+    dotClass: "bg-lab-violet",
     textClass: "text-lab-violet",
     softClass: "bg-lab-violet/10",
     badgeClass: "bg-lab-violet/10 text-lab-violet",
@@ -49,6 +54,7 @@ export const TEAM_META: TeamMeta[] = [
     id: 5,
     name: "팀 E",
     hex: "#C0713A",
+    dotClass: "bg-lab-orange",
     textClass: "text-lab-orange",
     softClass: "bg-lab-orange/10",
     badgeClass: "bg-lab-orange/10 text-lab-orange",
@@ -58,6 +64,7 @@ export const TEAM_META: TeamMeta[] = [
     id: 6,
     name: "팀 F",
     hex: "#1E6B9A",
+    dotClass: "bg-lab-sky",
     textClass: "text-lab-sky",
     softClass: "bg-lab-sky/10",
     badgeClass: "bg-lab-sky/10 text-lab-sky",

@@ -1,8 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, ExternalLink, MapPin } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  MapPin,
+  QrCode,
+  Users,
+} from "lucide-react";
 
+import AttendancePanel from "@/components/attendance/AttendancePanel";
+import QrModal from "@/components/attendance/QrModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { TeamActivityRecord } from "@/lib/types";
@@ -21,6 +30,8 @@ export default function ActivityCell({
   onUpdate: (id: number, payload: Partial<TeamActivityRecord>) => Promise<void>;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [showAttendance, setShowAttendance] = useState(false);
+  const [showQr, setShowQr] = useState(false);
   const [reportUrl, setReportUrl] = useState(activity.report_url ?? "");
   const statusMeta = STATUS_META[activity.status];
 
@@ -28,19 +39,12 @@ export default function ActivityCell({
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-ink">
-            {activity.activity_no}회차
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {activity.activity_type ?? "활동 유형 미정"}
-          </p>
+          <p className="text-sm font-semibold text-ink">{activity.activity_no}차 활동</p>
+          <p className="mt-1 text-xs text-slate-500">{activity.activity_type ?? "활동 유형 미정"}</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
-          <button
-            onClick={() => setExpanded((prev) => !prev)}
-            className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-slate-600"
-          >
+          <button className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-slate-600" onClick={() => setExpanded((prev) => !prev)}>
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
         </div>
@@ -49,51 +53,50 @@ export default function ActivityCell({
 
       {expanded ? (
         <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
-          <p className="text-sm leading-6 text-slate-600">
-            {activity.summary ?? "활동 요약은 아직 등록되지 않았습니다."}
-          </p>
+          <p className="text-sm leading-6 text-slate-600">{activity.summary ?? "활동 요약이 아직 등록되지 않았습니다."}</p>
           <p className="flex items-center gap-1 text-sm text-slate-500">
             <MapPin className="h-4 w-4" />
             {activity.location ?? "장소 미정"}
           </p>
           {activity.report_url ? (
-            <a
-              href={activity.report_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-lab-blue hover:underline"
-            >
+            <a className="inline-flex items-center gap-1 text-sm text-lab-blue hover:underline" href={activity.report_url} rel="noreferrer" target="_blank">
               <ExternalLink className="h-4 w-4" />
               활동보고서 보기
             </a>
           ) : (
             <p className="text-sm text-slate-300">활동보고서 미등록</p>
           )}
-          <input
-            type="text"
-            value={reportUrl}
-            onChange={(event) => setReportUrl(event.target.value)}
-            placeholder="활동보고서 URL 입력"
-            className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10"
-          />
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setShowQr(true)} size="sm" variant="ghost">
+              <QrCode className="mr-1 h-4 w-4" />
+              QR 출석
+            </Button>
+            <Button onClick={() => setShowAttendance((prev) => !prev)} size="sm" variant="ghost">
+              <Users className="mr-1 h-4 w-4" />
+              출석 현황
+            </Button>
+          </div>
+          {showAttendance ? (
+            <AttendancePanel sessionId={activity.id} sessionType="activity" />
+          ) : null}
+          <input className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10" onChange={(event) => setReportUrl(event.target.value)} placeholder="활동보고서 URL 입력" type="text" value={reportUrl} />
           <div className="flex flex-wrap gap-2">
             {(["planned", "ongoing", "done"] as const).map((status) => (
-              <Button
-                key={status}
-                variant={activity.status === status ? "primary" : "outline"}
-                size="sm"
-                onClick={() =>
-                  onUpdate(activity.id, {
-                    status,
-                    report_url: reportUrl || null,
-                  })
-                }
-              >
+              <Button key={status} onClick={() => onUpdate(activity.id, { report_url: reportUrl || null, status })} size="sm" variant={activity.status === status ? "primary" : "outline"}>
                 {STATUS_META[status].label}
               </Button>
             ))}
           </div>
         </div>
+      ) : null}
+
+      {showQr ? (
+        <QrModal
+          onClose={() => setShowQr(false)}
+          sessionId={activity.id}
+          sessionTitle={`${activity.team_name} ${activity.activity_no}차 활동`}
+          sessionType="activity"
+        />
       ) : null}
     </div>
   );

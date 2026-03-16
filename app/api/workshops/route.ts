@@ -25,33 +25,40 @@ export async function GET() {
       .prepare(
         `
           SELECT
-            workshop_id,
-            COUNT(*) as total_invited,
-            SUM(CASE WHEN attended = 1 THEN 1 ELSE 0 END) as attended_count
+            session_id,
+            COUNT(*) as attended_count
           FROM workshop_attendance
-          GROUP BY workshop_id
+          WHERE session_type = 'workshop' AND attended = 1
+          GROUP BY session_id
         `,
       )
       .all() as Array<{
-      workshop_id: number;
-      total_invited: number;
+      session_id: number;
       attended_count: number;
     }>;
 
+    const activeParticipantRow = db
+      .prepare(
+        `
+          SELECT COUNT(*) as count
+          FROM participants
+          WHERE status = 'active'
+        `,
+      )
+      .get() as { count: number };
+
     const attendanceMap = new Map(
       attendanceRows.map((row) => [
-        row.workshop_id,
-        {
-          total_invited: Number(row.total_invited),
-          attended_count: Number(row.attended_count),
-        },
+        row.session_id,
+        Number(row.attended_count),
       ]),
     );
 
+    const totalInvited = Number(activeParticipantRow.count ?? 0);
     const result = workshops.map((workshop) => ({
       ...workshop,
-      attended_count: attendanceMap.get(workshop.id)?.attended_count ?? 0,
-      total_invited: attendanceMap.get(workshop.id)?.total_invited ?? 0,
+      attended_count: attendanceMap.get(workshop.id) ?? 0,
+      total_invited: totalInvited,
     }));
 
     return NextResponse.json(result);

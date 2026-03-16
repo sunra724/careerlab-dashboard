@@ -3,6 +3,7 @@ export type ParticipantStatus = "active" | "withdrawn";
 export type WorkStatus = "planned" | "ongoing" | "done";
 export type DeliverableStatus = "pending" | "submitted" | "approved";
 export type BadgeTone = "green" | "blue" | "amber" | "gray" | "red";
+export type AttendanceSessionType = "workshop" | "activity";
 
 export interface TeamRecord {
   id: number;
@@ -69,6 +70,37 @@ export interface DeliverableRecord {
   note: string | null;
 }
 
+export interface AttendanceParticipant {
+  id: number;
+  name: string;
+  phone: string | null;
+  team_id: number | null;
+  team_name: string | null;
+  team_color: string | null;
+}
+
+export interface AttendanceRecord {
+  id: number;
+  session_type: AttendanceSessionType;
+  session_id: number;
+  participant_id: number | null;
+  participant_name: string | null;
+  attended: number;
+  attended_at: string | null;
+  signature_data: string | null;
+  ip_address: string | null;
+  participant_name_db: string | null;
+  phone: string | null;
+  team_id: number | null;
+  team_name: string | null;
+  team_color: string | null;
+}
+
+export interface AttendanceResponse {
+  attendance: AttendanceRecord[];
+  participants: AttendanceParticipant[];
+}
+
 export interface TeamSummary {
   id: number;
   name: string;
@@ -116,4 +148,63 @@ export interface KpiResponse {
     trainings: KpiMetric;
   };
   snapshots: KpiSnapshot[];
+}
+
+export type ImpactSectionKey =
+  | "overview"
+  | "logicmodel"
+  | "sroi"
+  | "policy"
+  | "scalability"
+  | "solutions"
+  | "conclusion";
+
+export interface ImpactParticipantNote {
+  id: number;
+  name: string;
+  note: string;
+}
+
+export interface ImpactParticipantsSummary {
+  total: number;
+  active: number;
+}
+
+export interface ImpactTeamContext {
+  id: number;
+  name: string;
+  topic: string | null;
+  color: string;
+  activity_summaries: string | null;
+  activities_done: number;
+}
+
+export interface ImpactWorkshopContext {
+  id: number;
+  session_no: number;
+  title: string;
+  held_date: string | null;
+  status: WorkStatus;
+  attended_count: number;
+}
+
+export interface ImpactSolutionContext {
+  id: number;
+  title: string;
+  note: string | null;
+  status: DeliverableStatus;
+}
+
+export interface ImpactContextResponse {
+  kpi: KpiSnapshot | null;
+  participants: ImpactParticipantsSummary;
+  participantNotes: ImpactParticipantNote[];
+  teams: ImpactTeamContext[];
+  workshops: ImpactWorkshopContext[];
+  solutions: ImpactSolutionContext[];
+  attendanceRate: number;
+  budget: number;
+  projectName: string;
+  organization: string;
+  period: string;
 }
