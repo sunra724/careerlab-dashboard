@@ -82,6 +82,19 @@ function initSchema(database: Database.Database) {
       created_at    TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS session_photos (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_type  TEXT NOT NULL DEFAULT 'workshop',
+      session_id    INTEGER NOT NULL,
+      filename      TEXT NOT NULL,
+      original_name TEXT,
+      caption       TEXT,
+      file_size     INTEGER,
+      taken_at      TEXT DEFAULT (datetime('now', 'localtime')),
+      uploaded_by   TEXT DEFAULT 'admin',
+      created_at    TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS kpi_snapshots (
       id                 INTEGER PRIMARY KEY AUTOINCREMENT,
       snapshot_date      TEXT DEFAULT (date('now')),
@@ -106,6 +119,10 @@ function initSchema(database: Database.Database) {
   `);
 
   migrateAttendanceTable(database);
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_session_photos
+    ON session_photos(session_type, session_id);
+  `);
 }
 
 function migrateAttendanceTable(database: Database.Database) {

@@ -101,6 +101,20 @@ export interface AttendanceResponse {
   participants: AttendanceParticipant[];
 }
 
+export interface SessionPhotoRecord {
+  id: number;
+  session_type: AttendanceSessionType;
+  session_id: number;
+  filename: string;
+  original_name: string | null;
+  caption: string | null;
+  file_size: number | null;
+  taken_at: string;
+  uploaded_by: string | null;
+  created_at: string;
+  url?: string;
+}
+
 export interface TeamSummary {
   id: number;
   name: string;
@@ -195,6 +209,13 @@ export interface ImpactSolutionContext {
   status: DeliverableStatus;
 }
 
+export interface ImpactPhotoSummary {
+  total: number;
+  workshop_sessions: number;
+  activity_sessions: number;
+  recent_captions: string[];
+}
+
 export interface ImpactContextResponse {
   kpi: KpiSnapshot | null;
   participants: ImpactParticipantsSummary;
@@ -202,6 +223,7 @@ export interface ImpactContextResponse {
   teams: ImpactTeamContext[];
   workshops: ImpactWorkshopContext[];
   solutions: ImpactSolutionContext[];
+  photos: ImpactPhotoSummary;
   attendanceRate: number;
   budget: number;
   projectName: string;
