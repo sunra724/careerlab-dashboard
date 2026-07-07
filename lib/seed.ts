@@ -99,13 +99,20 @@ const DELIVERABLES = [
   { type: "final_report", title: "최종 결과보고서", due_date: "2026-06-14" },
 ];
 
+let databaseSeedChecked = false;
+
 export function seedDatabase() {
+  if (databaseSeedChecked) {
+    return;
+  }
+
   const db = getDb();
   const teamCountRow = db
     .prepare("SELECT COUNT(*) as count FROM teams")
     .get() as { count: number };
 
   if (teamCountRow.count > 0) {
+    databaseSeedChecked = true;
     return;
   }
 
@@ -226,4 +233,5 @@ export function seedDatabase() {
   });
 
   seed();
+  databaseSeedChecked = true;
 }

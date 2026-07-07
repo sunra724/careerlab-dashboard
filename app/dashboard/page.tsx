@@ -1,14 +1,11 @@
-"use client";
-
-import useSWR from "swr";
-
 import DeliverableStatusCard from "@/components/dashboard/DeliverableStatusCard";
 import KpiCard from "@/components/dashboard/KpiCard";
 import TeamSummaryGrid from "@/components/dashboard/TeamSummaryGrid";
 import TimelineCard from "@/components/dashboard/TimelineCard";
 import Header from "@/components/layout/Header";
-import { fetchJson } from "@/lib/fetcher";
-import type { OverviewResponse } from "@/lib/types";
+import { getOverviewData } from "@/lib/overview";
+
+export const dynamic = "force-dynamic";
 
 const KPI_ITEMS = [
   { key: "participantsCount", label: "참여자 모집", target: 30, unit: "명", tone: "navy" },
@@ -18,18 +15,7 @@ const KPI_ITEMS = [
 ] as const;
 
 export default function DashboardPage() {
-  const { data } = useSWR<OverviewResponse>(
-    "/api/overview",
-    (url: string) => fetchJson<OverviewResponse>(url),
-  );
-
-  if (!data) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
-        대시보드 데이터를 불러오는 중입니다...
-      </div>
-    );
-  }
+  const data = getOverviewData();
 
   return (
     <div className="flex min-h-screen flex-col">
