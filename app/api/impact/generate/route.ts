@@ -10,6 +10,7 @@ import type { SroiInput } from "@/lib/sroi";
 import type { ImpactContextResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
 
 interface GenerateRequestBody {
   context: ImpactContextResponse;
@@ -37,8 +38,8 @@ export async function POST(request: NextRequest) {
 
     const client = new Anthropic({ apiKey });
     const stream = await client.messages.create({
-      model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
-      max_tokens: 1800,
+      model: MODEL,
+      max_tokens: 4096,
       system: IMPACT_SYSTEM_PROMPT,
       messages: [
         {
@@ -57,16 +58,33 @@ export async function POST(request: NextRequest) {
     const readable = new ReadableStream({
       async start(controller) {
         try {
+          let hasText = false;
           for await (const chunk of stream) {
+            if (chunk.type === "message_delta") {
+              if (chunk.delta.stop_reason === "refusal") {
+                throw new Error("AI가 보고서 생성을 거부했습니다. 입력 내용을 확인해주세요.");
+              }
+              if (
+                chunk.delta.stop_reason === "max_tokens" ||
+                chunk.delta.stop_reason === "model_context_window_exceeded"
+              ) {
+                throw new Error("AI 응답이 길이 제한으로 중단되었습니다. 입력을 줄여 다시 시도해주세요.");
+              }
+            }
             if (
               chunk.type === "content_block_delta" &&
               chunk.delta.type === "text_delta"
             ) {
+              hasText ||= chunk.delta.text.trim().length > 0;
               controller.enqueue(encoder.encode(chunk.delta.text));
             }
           }
+          if (!hasText) {
+            throw new Error("AI 응답에 보고서 텍스트가 없습니다.");
+          }
           controller.close();
         } catch (error) {
+          console.error("Impact streaming failed:", error);
           controller.error(error);
         }
       },
@@ -80,6 +98,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error("POST /api/impact/generate failed:", error);
     return NextResponse.json(
       {
         error:
